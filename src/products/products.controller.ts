@@ -6,52 +6,76 @@ import {
   Param,
   Patch,
   Delete,
+  ParseIntPipe
 } from '@nestjs/common';
 
 import { ProductsService } from './products.service';
+import { Product } from './products.entity';
+import { CreateProductParams } from './utils/types';
+import { CreateProductDto } from './dtos/CreateProduct.dto';
+import { UpdateProductDto } from './dtos/UpdateProduct.dto';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  addProduct(
-    @Body('title') prodTitle: string,
-    @Body('description') prodDesc: string,
-    @Body('price') prodPrice: number,
-  ) {
-    const generatedId = this.productsService.insertProduct(
-      prodTitle,
-      prodDesc,
-      prodPrice,
-    );
-    return { id: generatedId };
-  }
+    create(
+      @Body() createProductDto: CreateProductDto
+    ) {
+      return this.productsService.create(createProductDto);
+    }
 
   @Get()
-  getAllProducts() {
-    return this.productsService.getProducts();
-  }
+    async findAll() {
+      const products = await this.productsService.find({
+        where: {}
+      });
+      return products;
+    }
 
   @Get(':id')
-  getProduct(@Param('id') prodId: string) {
-    return this.productsService.getSingleProduct(prodId);
+  async getProduct(@Param('id', ParseIntPipe) id: number) {
+    const result = await this.productsService.findOne({
+      where: { id: id}
+    });
+
+    if ( !result ) {
+      return {
+        'error': true,
+        'message': 'Record not found!'
+      }
+    }
+
+    return {
+      'error': false,
+      'message': 'Successful',
+      'data': result
+    }
   }
 
   @Patch(':id')
-  updateProduct(
-    @Param('id') prodId: string,
-    @Body('title') prodTitle: string,
-    @Body('description') prodDesc: string,
-    @Body('price') prodPrice: number,
+  async updateProduct(
+    @Param('id') id: number,
+    @Body() updateProductDto: UpdateProductDto,
   ) {
-    this.productsService.updateProduct(prodId, prodTitle, prodDesc, prodPrice);
-    return null;
+    const result = await this.productsService.update(id, updateProductDto);
+
+    return {
+      'error': false,
+      'message': 'Record has been updated.',
+    }
   }
 
   @Delete(':id')
-  removeProduct(@Param('id') prodId: string) {
-      this.productsService.deleteProduct(prodId);
-      return null;
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const result = await this.productsService.delete(id);
+
+    return {
+      'error': false,
+      'message': 'Record has been deleted.',
+    }
   }
 }

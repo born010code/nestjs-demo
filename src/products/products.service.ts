@@ -1,53 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { Product } from './product.model';
+import { CreateProductParams, UpdateProductParams } from './utils/types';
+import { Product } from './products.entity';
+// import { Product } from './product.model';
 
 @Injectable()
 export class ProductsService {
   private products: Product[] = [];
 
-  insertProduct(title: string, desc: string, price: number) {
-    const prodId = Math.random().toString();
-    const newProduct = new Product(prodId, title, desc, price);
-    this.products.push(newProduct);
-    return prodId;
+  constructor(
+    @InjectRepository(Product) private productRepository: Repository<Product>
+  ) {}
+
+  create(productDetails: CreateProductParams ) {
+    const product = this.productRepository.create({...productDetails})
+    return this.productRepository.save(product);
   }
 
-  getProducts() {
-    return [...this.products];
+  find( params ) {
+    return this.productRepository.find( params )
   }
 
-  getSingleProduct(productId: string) {
-    const product = this.findProduct(productId)[0];
-    return { ...product };
+  findOne( params ) {
+    return this.productRepository.findOne( params )
   }
 
-  updateProduct(productId: string, title: string, desc: string, price: number) {
-    const [product, index] = this.findProduct(productId);
-    const updatedProduct = { ...product };
-    if (title) {
-      updatedProduct.title = title;
-    }
-    if (desc) {
-      updatedProduct.description = desc;
-    }
-    if (price) {
-      updatedProduct.price = price;
-    }
-    this.products[index] = updatedProduct;
+  update(id: number, updateProductDetails: UpdateProductParams) {
+    return this.productRepository.update(
+      {id: id},
+      {...updateProductDetails}
+    );
   }
 
-  deleteProduct(prodId: string) {
-      const index = this.findProduct(prodId)[1];
-      this.products.splice(index, 1);
-  }
-
-  private findProduct(id: string): [Product, number] {
-    const productIndex = this.products.findIndex(prod => prod.id === id);
-    const product = this.products[productIndex];
-    if (!product) {
-      throw new NotFoundException('Could not find product.');
-    }
-    return [product, productIndex];
+  delete(id: number) {
+    return this.productRepository.delete({id: id});
   }
 }
