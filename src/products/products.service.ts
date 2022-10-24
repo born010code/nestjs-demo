@@ -1,16 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateProductParams, UpdateProductParams } from './utils/types';
 import { Product } from './products.entity';
-// import { Product } from './product.model';
 
 @Injectable()
 export class ProductsService {
   private products: Product[] = [];
 
   constructor(
+
     @InjectRepository(Product) private productRepository: Repository<Product>
   ) {}
 
@@ -37,4 +37,13 @@ export class ProductsService {
   delete(id: number) {
     return this.productRepository.delete({id: id});
   }
+
+  // async getDBAPI( params: any ) {
+  //   const baseQuery = `
+  //               SELECT 
+  //               *
+  //               FROM accounts
+  //               WHERE deleted_at IS NULL`
+  //   await this.dbAPI.query( );
+  // }
 }
