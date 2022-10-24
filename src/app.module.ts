@@ -19,7 +19,7 @@ import { Product } from './products/products.entity';
       password: 'binasbinas',
       database: 'nest',
       entities: [Product],
-      synchronize: true,
+      synchronize: false,
     }),
   ],
   controllers: [AppController],
